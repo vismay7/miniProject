@@ -9,8 +9,57 @@ GET http://localhost:3000/users/1
 ###
 GET http://localhost:3000/categories
 
-### Get Course
-GET http://localhost:3000/course/1
+### POST Course
+POST http://localhost:3000/course/
+Content-Type: application/json
+
+{
+  "course_title": "Course 5",
+  "course_description": "Description for Course 1",
+  "course_price": "29.99",
+  "course_is_free": 0,
+  "category_name": "Category 3",
+  "subcategory_name": "Subcategory 4",
+  "topics": [
+    {
+      "topic_title": "Topic 2",
+      "subtopics": [
+        {
+          "subtopic_title": "Subtopic 1"
+        }
+      ]
+    },
+    {
+      "topic_title": "Topic 1",
+      "subtopics": [
+        {
+          "subtopic_title": "Subtopic 1"
+        },
+        {
+          "subtopic_title": "Subtopic 2"
+        }
+      ]
+    }
+  ],
+  "files": [
+    {
+      "subtopic_id": 2,
+      "file_name": "File 3",
+      "file_path": "/path/to/file3"
+    },
+    {
+      "subtopic_id": 1,
+      "file_name": "File 2",
+      "file_path": "/path/to/file2"
+    },
+    {
+      "subtopic_id": 1,
+      "file_name": "File 1",
+      "file_path": "/path/to/file1"
+    }
+  ]
+}
+
 
 ### get user payment
 GET http://localhost:3000/payment/1

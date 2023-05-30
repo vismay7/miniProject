@@ -1,12 +1,87 @@
 //-- get All courses
 export const getAllCourse = () =>
-  `SELECT c.id AS course_id, c.title AS course_title, c.description AS course_description, c.price AS course_price, c.is_free AS course_is_free, cat.name AS category_name, subcat.name AS subcategory_name, JSON_ARRAYAGG ( JSON_OBJECT ( 'topic_id', t.id, 'topic_title', t.title, 'subtopics', ( SELECT JSON_ARRAYAGG ( JSON_OBJECT ('subtopic_id', st.id, 'subtopic_title', st.title) ) FROM Subtopic st WHERE st.topic_id = t.id ) ) ) AS topics, JSON_ARRAYAGG ( JSON_OBJECT ( 'file_id', f.id, 'file_name', f.filename, 'file_path', f.filepath ) ) AS files FROM Course c JOIN Category cat ON c.category_id = cat.id JOIN Subcategory subcat ON c.subcategory_id = subcat.id LEFT JOIN Topic t ON c.id = t.course_id LEFT JOIN File f ON t.id = f.topic_id GROUP BY c.id;`;
+  `SELECT
+    c.id AS course_id,
+    c.title AS course_title,
+    c.description AS course_description,
+    c.price AS course_price,
+    c.is_free AS course_is_free,
+    cat.name AS category_name,
+    subcat.name AS subcategory_name,
+    JSON_ARRAYAGG (
+        JSON_OBJECT (
+            'topic_id',
+            t.id,
+            'topic_title',
+            t.title,
+            'subtopics', (
+                SELECT
+                    JSON_ARRAYAGG (
+                        JSON_OBJECT (
+                            'subtopic_id',
+                            st.id,
+                            'subtopic_title',
+                            st.title
+                        )
+                    )
+                FROM
+                    Subtopic st
+                WHERE
+                    st.topic_id = t.id
+            )
+        )
+    ) AS topics,
+    JSON_ARRAYAGG (
+        JSON_OBJECT (
+            'subtopic_id',
+            f.subtopic_id,
+            'file_id',
+            f.id,
+            'file_name',
+            f.filename,
+            'file_path',
+            f.filepath
+        )
+    ) AS files
+FROM Course c
+    JOIN Category cat ON c.category_id = cat.id
+    JOIN Subcategory subcat ON c.subcategory_id = subcat.id
+    LEFT JOIN Topic t ON c.id = t.course_id
+    LEFT JOIN File f ON t.id = f.subtopic_id
+GROUP BY c.id;`;
+//-- create course
+export const createCourseQuery = (title: string, description: string, price: string, is_free: boolean, category_id: number, subcategory_id: number) => `
+      INSERT INTO Course (title, description, price, is_free, category_id, subcategory_id)
+      VALUES ('${title}', '${description}', ${price}, ${is_free}, ${category_id}, ${subcategory_id});
+    `;
+
+//-- update course
+export const updateCourseQuery = (title: string, description: string, price: string, is_free: boolean, topicTitle: string, subTopicTitle: string, courseId: number) =>
+  `
+UPDATE Course AS c
+LEFT JOIN Topic AS t ON t.course_id = c.id
+LEFT JOIN Subtopic AS st ON st.topic_id = t.id
+SET
+    c.title = '${title}', 
+    c.description = '${description}',
+    c.price = ${price},
+    c.is_free = ${is_free},
+    t.title = '${topicTitle}', 
+    st.title = '${subTopicTitle}'
+WHERE
+    c.id = ${courseId};
+
+`;
+
+//-- delete course
+export const deleteCourseQuery = (courseId: number) => `DELETE FROM Course WHERE id = ${courseId}`;
 
 //-- user enrolled course
 export const getUserEnrolledCourse = `SELECT u.id AS user_id, u.fullname AS user_fullname, u.email AS user_email, JSON_ARRAYAGG ( JSON_OBJECT ( 'course_id', c.id, 'course_title', c.title, 'course_description', c.description, 'course_category', cat.name, 'course_subcategory', subcat.name, 'course_price', c.price, 'course_is_free', c.is_free, 'enrollment_progress', e.progress ) ) AS enrolled_courses FROM User u JOIN Enrollment e ON u.id = e.user_id JOIN Course c ON e.course_id = c.id JOIN Category cat ON c.category_id = cat.id JOIN Subcategory subcat ON c.subcategory_id = subcat.id WHERE u.id = 1 GROUP BY u.email;`;
 
 //-- get all categories
-export const getAllCategories = "SELECT  c.id AS category_id, c.name AS category_name, JSON_ARRAYAGG (JSON_OBJECT ('id', s.id, 'name', s.name)) AS subcategories FROM Category c LEFT JOIN Subcategory s ON c.id = s.category_id GROUP BY c.id, c.name;";
+export const getAllCategories =
+  "SELECT  c.id AS category_id, c.name AS category_name, JSON_ARRAYAGG (JSON_OBJECT ('id', s.id, 'name', s.name)) AS subcategories FROM Category c LEFT JOIN Subcategory s ON c.id = s.category_id GROUP BY c.id, c.name;";
 
 //-- user paymeny HISTORY
 export const getUserPaymentHistroy = (userId: number) => `SELECT
