@@ -1,9 +1,9 @@
-import express, { Request, Response } from "express";
-const app = express();
+import express, { Express } from "express";
+import routes from "./routes/Routes";
 
-app.get("/", (req: Request, res: Response) => {
-  res.send("Hello, world!");
-});
+const app: Express = express();
+
+app.use("/", routes);
 
 app.listen(3000, () => {
   console.log("Server is listening on port 3000");
