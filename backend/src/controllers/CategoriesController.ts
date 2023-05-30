@@ -1,22 +1,14 @@
 import { Request, Response } from "express";
 import { executeQuery } from "../config/dbConfig";
+import { getAllCategories } from "../queries/query";
 
 export const getCategories = async (req: Request, res: Response): Promise<void> => {
   try {
-    let categories = await executeQuery("SELECT Categories.category_id, Categories.category_name, GROUP_CONCAT (Subcategories.subcategory_name) AS sub_categories FROM Categories INNER JOIN Subcategories ON Categories.category_id = Subcategories.category_id GROUP BY Categories.category_id, Categories.category_name;");
-
-    categories.map((categorie) => {
-      if (categorie.sub_categories) {
-        let subCategories = categorie.sub_categories;
-        categorie.sub_categories = subCategories.split(",");
-        return categorie.sub_categories;
-      } else {
-        return categorie;
-      }
-    });
+    let categories = await executeQuery(getAllCategories);
 
     res.status(200).json(categories);
   } catch (error) {
-    res.status(500).json({ message: "Category not Found" });
+    const err = error as Error;
+    res.status(400).json({ error: err.message });
   }
 };
