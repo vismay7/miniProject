@@ -9,10 +9,10 @@ CREATE TABLE
   User (
     id INT PRIMARY KEY AUTO_INCREMENT,
     fullname VARCHAR(255),
-    email VARCHAR(255),
+    email VARCHAR(255) UNIQUE,
     password VARCHAR(255),
     is_verified BOOLEAN,
-    is_admin BOOLEAN,
+    is_admin BOOLEAN DEFAULT false,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
   );
@@ -408,3 +408,136 @@ DELETE FROM Enrollment
 WHERE
   user_id = 1
   AND course_id = 1;
+
+-- get all course details
+SELECT
+  c.id AS course_id,
+  c.title AS course_title,
+  c.description AS course_description,
+  c.price AS course_price,
+  c.is_free AS course_is_free,
+  cat.name AS category_name,
+  subcat.name AS subcategory_name,
+  JSON_ARRAYAGG (
+    JSON_OBJECT (
+      'topic_id',
+      t.id,
+      'topic_title',
+      t.title,
+      'subtopics',
+      (
+        SELECT
+          JSON_ARRAYAGG (
+            JSON_OBJECT ('subtopic_id', st.id, 'subtopic_title', st.title)
+          )
+        FROM
+          Subtopic st
+        WHERE
+          st.topic_id = t.id
+      )
+    )
+  ) AS topics,
+  JSON_ARRAYAGG (
+    JSON_OBJECT (
+      'file_id',
+      f.id,
+      'file_name',
+      f.filename,
+      'file_path',
+      f.filepath
+    )
+  ) AS files
+FROM
+  Course c
+  JOIN Category cat ON c.category_id = cat.id
+  JOIN Subcategory subcat ON c.subcategory_id = subcat.id
+  LEFT JOIN Topic t ON c.id = t.course_id
+  LEFT JOIN File f ON t.id = f.topic_id
+GROUP BY
+  c.id;
+
+-- get a perticular course details
+SELECT
+  c.id AS course_id,
+  c.title AS course_title,
+  c.description AS course_description,
+  c.price AS course_price,
+  c.is_free AS course_is_free,
+  cat.name AS category_name,
+  subcat.name AS subcategory_name,
+  JSON_ARRAYAGG (
+    JSON_OBJECT (
+      'topic_id',
+      t.id,
+      'topic_title',
+      t.title,
+      'subtopics',
+      (
+        SELECT
+          JSON_ARRAYAGG (
+            JSON_OBJECT ('subtopic_id', st.id, 'subtopic_title', st.title)
+          )
+        FROM
+          Subtopic st
+        WHERE
+          st.topic_id = t.id
+      )
+    )
+  ) AS topics,
+  JSON_ARRAYAGG (
+    JSON_OBJECT (
+      'file_id',
+      f.id,
+      'file_name',
+      f.filename,
+      'file_path',
+      f.filepath
+    )
+  ) AS files
+FROM
+  Course c
+  JOIN Category cat ON c.category_id = cat.id
+  JOIN Subcategory subcat ON c.subcategory_id = subcat.id
+  LEFT JOIN Topic t ON c.id = t.course_id
+  LEFT JOIN File f ON t.id = f.topic_id
+WHERE
+  c.id = 1
+GROUP BY
+  c.id;
+
+-- get all payment and users also
+SELECT
+  u.id as user_id,
+  u.fullname as user_fullname,
+  u.email as user_password,
+  c.title as course_title,
+  -- c.price as course_price,
+  CASE
+    WHEN c.is_free = 1 THEN "Free"
+    ELSE c.price
+  END as course_price,
+  c.description as course_description,
+  p.amount as course_payment,
+  p.paid_at as payment_paid_at
+from
+  `User` u
+  LEFT JOIN `Payment` p ON u.id = p.user_id
+  LEFT JOIN `Course` c ON c.id = p.course_id;
+
+-- get All Orders
+SELECT
+  u.id as user_id,
+  u.fullname as user_fullname,
+  u.email as user_email,
+  u.is_verified as user_verified,
+  SUM(o.total_amount) as order_total_amount,
+  JSON_ARRAYAGG (
+    JSON_OBJECT ("course_title", c.title, "course_price", c.price)
+  ) as course_details
+from
+  `User` u
+  LEFT JOIN `Orders` o ON o.user_id = u.id
+  LEFT JOIN `OrderItem` oi ON o.id = oi.order_id
+  INNER JOIN `Course` c ON oi.course_id = c.id
+GROUP BY
+  u.id
