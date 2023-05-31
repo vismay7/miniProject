@@ -567,3 +567,10 @@ WHERE
     s.name = "Subcategory 2" && c.name = "Category 1";
 
 SELECT * from coursera.`Subcategory`;
+
+
+SELECT o.id,u.fullname,u.email,JSON_ARRAYAGG(JSON_OBJECT("course_id",c.id,"course_title",c.title,"course_description",c.description)) as course_details FROM coursera.`Orders` o LEFT JOIN `OrderItem` oi ON o.id=oi.order_id LEFT JOIN `User` u ON u.id=o.user_id JOIN `Course` c ON c.id=oi.course_id GROUP BY o.id;
+
+SELECT o.id,u.fullname,u.email,JSON_ARRAYAGG(JSON_OBJECT("course_id",c.id,"course_title",c.title,"course_description",c.description)) as course_details FROM coursera.`Orders` o LEFT JOIN `OrderItem` oi ON o.id=oi.order_id LEFT JOIN `User` u ON u.id=o.user_id JOIN `Course` c ON c.id=oi.course_id WHERE u.id=2 GROUP BY o.id;
+
+DELETE from Orders o JOIN OrderItem oi ON o.id=oi.order_id WHERE o.id = 1

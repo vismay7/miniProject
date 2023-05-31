@@ -80,8 +80,7 @@ export const deleteCourseQuery = (courseId: number) => `DELETE FROM Course WHERE
 export const getUserEnrolledCourse = `SELECT u.id AS user_id, u.fullname AS user_fullname, u.email AS user_email, JSON_ARRAYAGG ( JSON_OBJECT ( 'course_id', c.id, 'course_title', c.title, 'course_description', c.description, 'course_category', cat.name, 'course_subcategory', subcat.name, 'course_price', c.price, 'course_is_free', c.is_free, 'enrollment_progress', e.progress ) ) AS enrolled_courses FROM User u JOIN Enrollment e ON u.id = e.user_id JOIN Course c ON e.course_id = c.id JOIN Category cat ON c.category_id = cat.id JOIN Subcategory subcat ON c.subcategory_id = subcat.id WHERE u.id = 1 GROUP BY u.email;`;
 
 //-- get all categories
-export const getAllCategories =
-  "SELECT  c.id AS category_id, c.name AS category_name, JSON_ARRAYAGG (JSON_OBJECT ('id', s.id, 'name', s.name)) AS subcategories FROM Category c LEFT JOIN Subcategory s ON c.id = s.category_id GROUP BY c.id, c.name;";
+export const getAllCategories = "SELECT  c.id AS category_id, c.name AS category_name, JSON_ARRAYAGG (JSON_OBJECT ('id', s.id, 'name', s.name)) AS subcategories FROM Category c LEFT JOIN Subcategory s ON c.id = s.category_id GROUP BY c.id, c.name;";
 
 //-- user paymeny HISTORY
 export const getUserPaymentHistroy = (userId: number) => `SELECT
@@ -195,5 +194,10 @@ from
   LEFT JOIN \`Course\` c ON c.id = p.course_id;`;
 
 //-- get all orders
-export const AllOrder = ``;
-export const UserOrder = (userId: number) => ``;
+export const AllOrder = `SELECT o.id,u.fullname,u.email,JSON_ARRAYAGG(JSON_OBJECT("course_id",c.id,"course_title",c.title,"course_description",c.description)) as course_details FROM coursera.\`Orders\` o LEFT JOIN \`OrderItem\` oi ON o.id=oi.order_id LEFT JOIN \`User\` u ON u.id=o.user_id JOIN \`Course\` c ON c.id=oi.course_id GROUP BY o.id`;
+
+export const UserOrder = (userId: number) => `SELECT o.id,u.fullname,u.email,JSON_ARRAYAGG(JSON_OBJECT("course_id",c.id,"course_title",c.title,"course_description",c.description)) as course_details FROM coursera.\`Orders\` o LEFT JOIN \`OrderItem\` oi ON o.id=oi.order_id LEFT JOIN \`User\` u ON u.id=o.user_id JOIN \`Course\` c ON c.id=oi.course_id WHERE u.id=${userId} GROUP BY o.id`;
+
+export const deleteUserOrder = (orderId: number) => `DELETE from Orders o JOIN OrderItem oi ON o.id=oi.order_id WHERE o.id = ${orderId}`;
+
+export const createPaymentQuery = (userId: number, courseId: number) => `INSERT INTO Payment (user_id,course_id) VALUE (${userId},${courseId})`;

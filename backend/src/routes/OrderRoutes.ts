@@ -1,10 +1,18 @@
 import { Router } from "express";
-import { getAllOrder, getUserOrder } from "../controllers/OrderController";
+import { createOrder, deleteOrder, getAllOrder, getUserOrder } from "../controllers/OrderController";
 
 const orderRouter = Router();
 
-// locahost/payment/:userid (database primary key)
+// GET /order
 orderRouter.get("/", getAllOrder);
+
+// GET /order/:id
 orderRouter.get("/:id", getUserOrder);
+
+// POST /order
+orderRouter.post("/", createOrder);
+
+// DELETE /order/:id
+orderRouter.delete("/:id", deleteOrder);
 
 export default orderRouter;
