@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import { executeQuery } from "../config/dbConfig";
+import jwt from "jsonwebtoken";
 
 export const login = async (req: Request, res: Response) => {
   try {
@@ -9,8 +10,11 @@ export const login = async (req: Request, res: Response) => {
     const findUser = `SELECT * FROM User WHERE email='${email}'`;
     const [rows] = await executeQuery(findUser);
     const loginCheckPass = await bcrypt.compare(password, rows.password);
-
-    res.status(200).json(loginCheckPass);
+    if (!loginCheckPass) {
+      throw new Error("password is not valid");
+    }
+    const token = jwt.sign(rows, "secret");
+    res.status(200).json(token);
   } catch (error) {
     const err = error as Error;
     res.status(400).json({ error: err.message });
