@@ -13,7 +13,7 @@ export const login = async (req: Request, res: Response) => {
     if (!loginCheckPass) {
       throw new Error("password is not valid");
     }
-    const token = jwt.sign(rows, "secret");
+    const token = jwt.sign(rows, process.env.JWT_SECRET!);
     res.status(200).json(token);
   } catch (error) {
     const err = error as Error;
